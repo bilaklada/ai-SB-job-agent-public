@@ -1,0 +1,227 @@
+# =============================================================================
+# AI Job Application Agent - Python Dependencies
+# =============================================================================
+#
+# This file lists all Python packages required to run the application.
+# Version numbers are pinned (e.g., ==0.104.1) to ensure reproducible builds.
+#
+# INSTALLATION:
+#   pip install -r requirements.txt
+#
+# UPDATING PACKAGES:
+#   1. Update version number here
+#   2. Test thoroughly before deploying
+#   3. Document any breaking changes
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# WEB FRAMEWORK
+# -----------------------------------------------------------------------------
+
+# FastAPI - Modern, fast web framework for building APIs
+# Why: Core framework for all HTTP endpoints, automatic OpenAPI docs, type hints
+# Used by: main.py, all routes in app/api/
+# Documentation: https://fastapi.tiangolo.com/
+fastapi==0.104.1
+
+# -----------------------------------------------------------------------------
+# ASGI SERVER
+# -----------------------------------------------------------------------------
+
+# Uvicorn - Lightning-fast ASGI server to run FastAPI
+# Why: Runs the FastAPI application, handles HTTP requests
+# [standard] includes extra dependencies for performance (uvloop, httptools)
+# Used by: Docker container, local development
+# Documentation: https://www.uvicorn.org/
+uvicorn[standard]==0.24.0
+
+# -----------------------------------------------------------------------------
+# CONFIGURATION MANAGEMENT
+# -----------------------------------------------------------------------------
+
+# Pydantic - Data validation using Python type hints
+# Why: Core dependency of FastAPI, also used for Settings class
+# Used by: app/config.py (Settings), all API schemas
+# Documentation: https://docs.pydantic.dev/
+pydantic==2.10.2
+
+# Pydantic Settings - Settings management from environment variables
+# Why: Loads .env files automatically, validates configuration
+# Used by: app/config.py (BaseSettings class)
+# Documentation: https://docs.pydantic.dev/latest/concepts/pydantic_settings/
+pydantic-settings==2.7.0
+
+# Python-dotenv - Load environment variables from .env files
+# Why: Reads .env file and sets environment variables for the application
+# Used by: Pydantic Settings (automatically), can be used directly if needed
+# Documentation: https://pypi.org/project/python-dotenv/
+python-dotenv==1.0.1
+
+# -----------------------------------------------------------------------------
+# DATABASE
+# -----------------------------------------------------------------------------
+
+# SQLAlchemy - SQL toolkit and Object-Relational Mapping (ORM) library
+# Why: Interact with PostgreSQL database using Python objects instead of raw SQL
+# Used by: app/db/models.py (define tables), app/db/session.py (connections)
+# Documentation: https://docs.sqlalchemy.org/
+# Note: Using 2.0+ syntax (modern, typed, async support)
+sqlalchemy==2.0.23
+
+# Psycopg2-binary - PostgreSQL database adapter for Python
+# Why: SQLAlchemy needs this driver to connect to PostgreSQL
+# Used by: SQLAlchemy engine (behind the scenes)
+# Documentation: https://www.psycopg.org/
+# Note: "binary" version includes pre-compiled C libraries (easier installation)
+# Production note: Consider using psycopg2 (without -binary) for production
+psycopg2-binary==2.9.9
+
+# Alembic - Database migration tool for SQLAlchemy
+# Why: Version control for database schema, safe schema changes, rollback support
+# Used by: alembic/ directory, CLI commands (alembic upgrade/downgrade)
+# Documentation: https://alembic.sqlalchemy.org/
+# Note: Essential for production deployments, enables zero-downtime migrations
+alembic==1.13.1
+
+# -----------------------------------------------------------------------------
+# HTTP CLIENT (for external APIs)
+# -----------------------------------------------------------------------------
+
+# HTTPX - Async HTTP client for calling external APIs
+# Why: Make API calls to job boards (Adzuna, Jooble, etc.)
+# Advantages over requests: Async support, HTTP/2, better connection pooling
+# Used by: app/providers/ (job aggregator adapters)
+# Documentation: https://www.python-httpx.org/
+# Note: Fully async, works well with FastAPI
+httpx==0.27.2
+
+# -----------------------------------------------------------------------------
+# TESTING
+# -----------------------------------------------------------------------------
+
+# Pytest - Testing framework for Python
+# Why: Write and run unit tests, integration tests, API tests
+# Used by: tests/ directory, CI/CD pipeline
+# Documentation: https://docs.pytest.org/
+pytest==7.4.3
+
+# Pytest-asyncio - Async test support for pytest
+# Why: Test async functions (FastAPI routes, async providers)
+# Used by: Tests for async endpoints and services
+# Documentation: https://pytest-asyncio.readthedocs.io/
+pytest-asyncio==0.21.1
+
+# Pytest-cov - Test coverage plugin for pytest
+# Why: Measure code coverage, identify untested code
+# Used by: CI/CD pipeline, local coverage reports
+# Documentation: https://pytest-cov.readthedocs.io/
+pytest-cov==4.1.0
+
+# HTTPX - Already installed for app, also needed for testing
+# Used by: TestClient from fastapi.testclient
+# Note: Already listed above, no need to duplicate
+
+# -----------------------------------------------------------------------------
+# BROWSER AUTOMATION & RPA (Phase 5)
+# -----------------------------------------------------------------------------
+
+# Playwright - Modern browser automation library
+# Why: Deterministic browser automation for known portals (Greenhouse, Lever)
+# Used by: app/rpa/ (portal-specific automation scripts)
+# Documentation: https://playwright.dev/python/
+# Note: After install, run: playwright install chromium
+playwright==1.49.0
+
+# Browser-Use - LLM-powered browser automation
+# Why: Adaptive automation for complex/unknown websites
+# Used by: app/agents/ (AI-powered form filling)
+# Documentation: https://github.com/browser-use/browser-use
+browser-use==0.1.10
+
+# LangGraph - Agent workflow orchestration
+# Why: Orchestrate multi-agent workflows, state management, decision trees
+# Used by: app/agents/ (main Applicant Agent orchestrator)
+# Documentation: https://www.langchain.com/langgraph
+langgraph==0.2.28
+
+# LangChain Core - Required by LangGraph
+# Why: Core primitives for building with LangChain
+# Used by: LangGraph (dependency)
+# Note: Updated to 0.3.35+ to satisfy langchain dependencies from browser-use
+langchain-core>=0.3.35,<0.4.0
+
+# LangChain Community - Community integrations for LangChain
+# Why: Additional integrations and tools
+# Used by: LangGraph workflows
+langchain-community==0.3.5
+
+# -----------------------------------------------------------------------------
+# LLM APIs (Phase 5 - AI Integration)
+# -----------------------------------------------------------------------------
+
+# Google Generative AI - Gemini API client
+# Why: Free tier LLM for Browser-Use (1500 requests/day free)
+# Used by: app/agents/ (AI-powered automation with Gemini)
+# Documentation: https://ai.google.dev/tutorials/python_quickstart
+google-generativeai==0.8.3
+
+# LangChain Google GenAI - LangChain integration for Gemini
+# Why: Seamless Gemini integration with LangChain/LangGraph workflows
+# Used by: app/orchestration/ (state machine AI operations for ATS/company matching)
+# Documentation: https://python.langchain.com/docs/integrations/llms/google_ai
+langchain-google-genai>=1.0.0
+
+# LangChain OpenAI - LangChain integration for OpenAI
+# Why: Multi-provider support for ATS/company matching with OpenAI models
+# Used by: app/orchestration/llm_client.py (LLMClient multi-provider support)
+# Documentation: https://python.langchain.com/docs/integrations/platforms/openai
+langchain-openai>=0.2.11
+
+# LangChain Anthropic - LangChain integration for Anthropic Claude
+# Why: Multi-provider support for ATS/company matching with Claude models
+# Used by: app/orchestration/llm_client.py (LLMClient multi-provider support)
+# Documentation: https://python.langchain.com/docs/integrations/platforms/anthropic
+langchain-anthropic>=0.3.0
+
+# -----------------------------------------------------------------------------
+# CONTAINER MANAGEMENT (Phase 5 - Security)
+# -----------------------------------------------------------------------------
+
+# Docker - Python client for Docker API
+# Why: Spawn isolated containers for agent execution
+# Used by: app/agents/container_manager.py
+# Documentation: https://docker-py.readthedocs.io/
+docker==7.1.0
+
+# =============================================================================
+# DEPENDENCY NOTES
+# =============================================================================
+#
+# CURRENT PHASE: Phase 5 (MVP RPA Flow - Applicant Agent)
+# These dependencies support:
+# - FastAPI web application (fastapi, uvicorn)
+# - Configuration management (pydantic, pydantic-settings, python-dotenv)
+# - Database operations (sqlalchemy, psycopg2-binary, alembic)
+# - External API calls (httpx)
+# - Testing (pytest, pytest-asyncio, pytest-cov)
+# - Browser automation (playwright, browser-use)
+# - Agent orchestration (langgraph, langchain-core, langchain-community)
+# - LLM integration (google-generativeai, langchain-openai, langchain-anthropic)
+# - Container management (docker)
+#
+# NOT YET INCLUDED (will be added in later phases):
+# - celery: Background task queue (Phase 6+)
+# - redis: Celery broker and caching (Phase 6+)
+# - black, ruff: Code formatting and linting (Cross-cutting)
+#
+# POST-INSTALLATION STEPS:
+#   1. Install Playwright browsers: playwright install chromium
+#   2. Set GEMINI_API_KEY in .env file
+#   3. Ensure Docker is running for container-based execution
+#
+# TOTAL PACKAGES: 21 dependencies (Phase 0-5)
+# INSTALLATION SIZE: ~200-250 MB (includes Chromium browser)
+# PYTHON VERSION: Requires Python 3.11+ (for browser-use)
+#
+# =============================================================================

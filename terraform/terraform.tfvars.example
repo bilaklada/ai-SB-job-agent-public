@@ -1,0 +1,94 @@
+# =============================================================================
+# Terraform Variables Example File
+# =============================================================================
+#
+# Copy this file to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# NOTE: terraform.tfvars is gitignored for security (contains sensitive data)
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# AWS CONFIGURATION
+# -----------------------------------------------------------------------------
+
+aws_region   = "eu-west-1"
+environment  = "dev"
+project_name = "ai-job-agent"
+
+# -----------------------------------------------------------------------------
+# RDS DATABASE CONFIGURATION
+# -----------------------------------------------------------------------------
+
+db_instance_class       = "db.t4g.micro"  # Cost-optimized ARM-based instance
+db_allocated_storage    = 20              # GB
+db_storage_type         = "gp2"
+db_engine_version       = "17.6"
+db_name                 = "jobagent_db"
+db_username             = "postgres"
+
+# IMPORTANT: Set your actual database password here
+# For production, use AWS Secrets Manager instead
+db_password = "YOUR_SECURE_PASSWORD_HERE"
+
+# High Availability (set to true for production)
+db_multi_az = false  # false for dev (saves cost), true for prod
+
+# Public Access (set to false for production)
+db_publicly_accessible = true  # true for dev (easy access), false for prod
+
+# Backup Configuration
+db_backup_retention_period = 7              # days
+db_backup_window           = "03:00-04:00"  # UTC
+db_maintenance_window      = "mon:04:00-mon:05:00"
+
+# Deletion Protection (set to true for production)
+db_deletion_protection = false  # false for dev, true for prod
+db_skip_final_snapshot = true   # true for dev, false for prod
+
+# Encryption
+db_storage_encrypted = true
+
+# Performance Insights (additional cost)
+db_performance_insights_enabled = false  # false for dev, true for prod if needed
+
+# -----------------------------------------------------------------------------
+# NETWORKING
+# -----------------------------------------------------------------------------
+
+# Leave empty to use default VPC
+vpc_id = ""
+
+# Leave empty to use all default subnets
+db_subnet_ids = []
+
+# CIDR blocks allowed to connect to RDS
+# WARNING: 0.0.0.0/0 is INSECURE - use only for development!
+# For production, use specific IP addresses or ranges:
+# allowed_cidr_blocks = ["10.0.0.0/16", "YOUR_OFFICE_IP/32"]
+allowed_cidr_blocks = ["0.0.0.0/0"]
+
+# -----------------------------------------------------------------------------
+# MONITORING
+# -----------------------------------------------------------------------------
+
+enable_cloudwatch_alarms = true
+
+# Optional: SNS topic ARN for alarm notifications
+# alarm_sns_topic_arn = "arn:aws:sns:eu-west-1:123456789012:rds-alarms"
+alarm_sns_topic_arn = ""
+
+cpu_utilization_threshold = 80  # percent
+free_storage_threshold_mb = 2000  # MB (2 GB)
+
+# -----------------------------------------------------------------------------
+# TAGS
+# -----------------------------------------------------------------------------
+
+tags = {
+  Project     = "AI Job Agent"
+  ManagedBy   = "Terraform"
+  Environment = "dev"
+  Team        = "Development"
+}

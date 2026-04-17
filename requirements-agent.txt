@@ -1,0 +1,77 @@
+# =============================================================================
+# Agent Container Dependencies (Isolated from Main API)
+# =============================================================================
+#
+# This file contains dependencies ONLY for the Applicant Agent container.
+# The agent runs in isolation (Dockerfile.agent) to avoid dependency conflicts
+# with the main FastAPI application.
+#
+# Python Version: 3.11+
+# Container: Dockerfile.agent
+# Purpose: Browser automation for job applications
+#
+# STRATEGY: Use latest compatible versions to avoid conflicts
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Framework (Database Access)
+# -----------------------------------------------------------------------------
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# -----------------------------------------------------------------------------
+# Configuration Management
+# -----------------------------------------------------------------------------
+pydantic>=2.10.2
+pydantic-settings>=2.7.0
+python-dotenv>=1.0.1
+
+# -----------------------------------------------------------------------------
+# Browser Automation
+# -----------------------------------------------------------------------------
+# Playwright: Deterministic browser automation
+playwright>=1.49.0
+
+# Browser-Use: LLM-powered adaptive automation
+browser-use>=0.1.10
+
+# -----------------------------------------------------------------------------
+# LLM Integration (Gemini)
+# -----------------------------------------------------------------------------
+# Core Google Generative AI SDK
+google-generativeai>=0.8.0
+
+# LangChain integration for Gemini
+langchain-google-genai>=1.0.0
+
+# -----------------------------------------------------------------------------
+# Agent Orchestration (LangGraph) - CRITICAL
+# -----------------------------------------------------------------------------
+# Using latest langgraph (1.x) which should support newer langchain-core
+langgraph>=1.0.0
+
+# LangChain dependencies (will be installed by langgraph/langchain-google-genai)
+# langchain-core (auto-installed)
+# langsmith (auto-installed)
+
+# -----------------------------------------------------------------------------
+# HTTP Client
+# -----------------------------------------------------------------------------
+httpx>=0.27.0
+
+# =============================================================================
+# DEPENDENCY RESOLUTION STRATEGY
+# =============================================================================
+#
+# We're using version RANGES (>=) instead of pinned versions (==) to allow
+# pip to resolve compatible versions automatically.
+#
+# Key packages:
+# - langgraph 1.x (latest, should support modern langchain-core)
+# - langchain-google-genai 1.x+ (integrates Gemini with LangChain)
+# - browser-use 0.1.10+ (LLM-powered browser automation)
+# - playwright 1.49+ (deterministic browser automation)
+#
+# This approach lets pip find a compatible set of transitive dependencies.
+#
+# =============================================================================

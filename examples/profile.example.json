@@ -1,0 +1,75 @@
+{
+  "first_name": "Alex",
+  "last_name": "Example",
+  "nationality": "CH",
+  "phone_num": "+41000000000",
+  "email": "alex@example.com",
+  "current_city": "Zurich",
+  "current_country": "CH",
+  "work_auth_notes": "Authorized to work in Switzerland.",
+  "ready_to_start_when": "Flexible",
+  "relocation_policy": "Open to relocation within target markets.",
+  "remote_preference": "hybrid",
+  "experience_json": [
+    {
+      "type": "employment",
+      "company": "Example Analytics GmbH",
+      "position": "Data and Automation Engineer",
+      "start_date": "2024-01",
+      "end_date": "2025-12",
+      "location": "Zurich",
+      "responsibilities": [
+        "Built internal automation workflows.",
+        "Integrated APIs and data pipelines.",
+        "Produced operational dashboards for internal users."
+      ],
+      "technologies": [
+        "Python",
+        "FastAPI",
+        "PostgreSQL",
+        "Docker"
+      ]
+    }
+  ],
+  "skills_json": {
+    "programming_languages": [
+      {
+        "name": "Python",
+        "level": "advanced"
+      },
+      {
+        "name": "SQL",
+        "level": "intermediate"
+      }
+    ],
+    "technologies_tools": [
+      {
+        "name": "Docker",
+        "level": "intermediate"
+      },
+      {
+        "name": "AWS",
+        "level": "basic"
+      }
+    ]
+  },
+  "prefs_json": {
+    "job_targets": {
+      "roles": [
+        "Backend Engineer",
+        "AI Engineer",
+        "Automation Engineer"
+      ]
+    },
+    "locations": {
+      "countries_allowed": [
+        "CH",
+        "DE"
+      ],
+      "remote_ok": true,
+      "hybrid_ok": true
+    }
+  },
+  "linkedin_url": "https://www.linkedin.com/in/alex-example",
+  "github_url": "https://github.com/alex-example"
+}

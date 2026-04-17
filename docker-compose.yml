@@ -1,0 +1,130 @@
+services:
+
+  # FastAPI backend service (development environment)
+  api:
+    image: python:3.11
+    container_name: ai_job_agent_api
+
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/venv
+      - pip-cache:/root/.cache/pip
+
+    env_file:
+      - .env
+
+    command: >
+      sh -c "pip install -r requirements.txt &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+    ports:
+      - "8000:8000"
+
+    networks:
+      - app-network
+
+    restart: unless-stopped
+
+  # Next.js frontend service (production build)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        # Used during Next.js build for rewrites/proxy config
+        BACKEND_URL: http://api:8000
+    image: ai-job-agent-frontend
+    container_name: ai_job_agent_frontend
+
+    environment:
+      - NODE_ENV=production
+      # Used at runtime as well (and as fallback if needed)
+      - BACKEND_URL=http://api:8000
+
+    ports:
+      - "3000:3000"
+
+    networks:
+      - app-network
+
+    depends_on:
+      - api
+
+    restart: unless-stopped
+
+  # Development frontend (run only with: docker-compose --profile dev up --build)
+  frontend-dev:
+    image: node:20-alpine
+    container_name: ai_job_agent_frontend_dev
+    working_dir: /app
+
+    volumes:
+      - ./frontend:/app
+      - node-modules:/app/node_modules
+
+    environment:
+      - NODE_ENV=development
+      - BACKEND_URL=http://api:8000
+
+    command: >
+      sh -c "npm install &&
+             npm run dev"
+
+    ports:
+      - "3000:3000"
+
+    networks:
+      - app-network
+
+    depends_on:
+      - api
+
+    profiles:
+      - dev
+
+    restart: unless-stopped
+
+  # Applicant Agent service (browser automation with VNC)
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    image: ai-job-agent-worker
+    container_name: ai_job_agent_worker
+
+    env_file:
+      - .env
+
+    environment:
+      - HEADLESS=false
+      - DISPLAY=:0
+      - VNC_RESOLUTION=1920x1080
+      - VNC_PASSWORD=${VNC_PASSWORD:-change-me-before-use}
+
+    volumes:
+      - ./app:/app/app:ro
+      - ./scripts:/app/scripts:ro
+      - ./screenshots:/app/screenshots:rw
+      - ./logs:/app/logs:rw
+      - ./profile:/app/profile:ro
+
+    ports:
+      - "5900:5900"
+
+    networks:
+      - app-network
+
+    profiles:
+      - agent
+
+    restart: "no"
+
+volumes:
+  pip-cache:
+  node-modules:
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,166 @@
+# =============================================================================
+# Dockerfile for Applicant Agent (Isolated Execution)
+# =============================================================================
+#
+# This Dockerfile creates a secure, isolated container for running the
+# Applicant Agent that automates job applications using browser automation.
+#
+# SECURITY FEATURES:
+# - Non-root user execution
+# - Minimal base image
+# - Read-only application code
+# - Limited write permissions
+#
+# USAGE:
+#   docker build -f Dockerfile.agent -t ai-job-agent-worker .
+#   docker run --env-file .env ai-job-agent-worker
+#
+# =============================================================================
+
+FROM python:3.11-slim
+
+LABEL maintainer="AI Job Agent Team"
+LABEL description="Applicant Agent for automated job applications"
+LABEL version="1.0.0-phase5"
+
+# -----------------------------------------------------------------------------
+# SYSTEM DEPENDENCIES
+# -----------------------------------------------------------------------------
+
+# Install system dependencies for Playwright/Chromium + VNC
+RUN apt-get update && apt-get install -y \
+    # Chromium dependencies
+    wget \
+    gnupg2 \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libatspi2.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libwayland-client0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxkbcommon0 \
+    libxrandr2 \
+    xdg-utils \
+    # VNC Server + Window Manager
+    tigervnc-standalone-server \
+    tigervnc-common \
+    fluxbox \
+    xfonts-base \
+    xfonts-100dpi \
+    xfonts-75dpi \
+    # Virtual framebuffer (fallback)
+    xvfb \
+    # Git (for potential worktree operations)
+    git \
+    # Cleanup
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# -----------------------------------------------------------------------------
+# PYTHON DEPENDENCIES
+# -----------------------------------------------------------------------------
+
+# Copy agent-specific requirements file (isolated from main API)
+COPY requirements-agent.txt /tmp/requirements-agent.txt
+
+# Install Python packages
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements-agent.txt && \
+    rm /tmp/requirements-agent.txt
+
+# -----------------------------------------------------------------------------
+# USER SETUP (Security: Non-root execution)
+# -----------------------------------------------------------------------------
+
+# Create non-root user BEFORE installing browsers
+RUN useradd -m -u 1000 -s /bin/bash agent && \
+    mkdir -p /app /app/screenshots /app/logs /app/profile && \
+    chown -R agent:agent /app
+
+# Copy VNC entrypoint script as root (before switching to agent user)
+COPY scripts/vnc_entrypoint.sh /usr/local/bin/vnc_entrypoint.sh
+RUN chmod 755 /usr/local/bin/vnc_entrypoint.sh
+
+# Install Playwright browsers as the agent user
+# This ensures browser cache is in user's home directory
+USER agent
+RUN playwright install chromium
+
+# Switch back to root for installing system dependencies
+USER root
+RUN playwright install-deps chromium
+
+# Switch back to non-root user for runtime
+USER agent
+
+# -----------------------------------------------------------------------------
+# APPLICATION SETUP
+# -----------------------------------------------------------------------------
+
+# Set working directory
+WORKDIR /app
+
+# Volumes for controlled I/O
+# - /app/screenshots: Screenshots from automation (writable)
+# - /app/logs: Execution logs (writable)
+# - /app/profile: User profile data (read-only, mounted from host)
+VOLUME ["/app/screenshots", "/app/logs", "/app/profile"]
+
+# Expose VNC port
+EXPOSE 5900
+
+# Environment variables (can be overridden at runtime)
+ENV PYTHONUNBUFFERED=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/home/agent/.cache/ms-playwright \
+    LOG_LEVEL=INFO \
+    HEADLESS=false \
+    DISPLAY=:0 \
+    VNC_RESOLUTION=1920x1080 \
+    VNC_DEPTH=24
+
+# Health check (optional, for monitoring)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)"
+
+# VNC entrypoint - starts VNC server then runs the specified command
+ENTRYPOINT ["/usr/local/bin/vnc_entrypoint.sh"]
+
+# Default command (will be overridden by container_manager.py or docker run)
+CMD ["python", "-m", "app.agents.applicant_agent"]
+
+# =============================================================================
+# BUILD & RUN INSTRUCTIONS
+# =============================================================================
+#
+# BUILD:
+#   docker build -f Dockerfile.agent -t ai-job-agent-worker .
+#
+# RUN (standalone):
+#   docker run --rm \
+#     -e DATABASE_URL="postgresql://..." \
+#     -e GEMINI_API_KEY="..." \
+#     -e JOB_ID=123 \
+#     -v $(pwd)/app:/app/app:ro \
+#     -v $(pwd)/screenshots:/app/screenshots:rw \
+#     -v $(pwd)/logs:/app/logs:rw \
+#     -v $(pwd)/profile:/app/profile:ro \
+#     ai-job-agent-worker
+#
+# RUN (via docker-compose):
+#   docker-compose -f docker-compose.agent.yml up
+#
+# RUN (via Python container_manager):
+#   See app/agents/container_manager.py
+#
+# =============================================================================
